@@ -11,10 +11,23 @@ namespace MaxFlowNetwork
         static void Main(string[] args)
         {
             var maxFlow = new MaxFlowNetwork();
-          //  Console.WriteLine(maxFlow.Calculate(SimpleMatrix(), 0, 2));
-          //  Console.WriteLine(maxFlow.Calculate(MatrixFromExample(), 0, 6));
-            Console.WriteLine(maxFlow.Calculate(NoPathMatrix(), 0, 4));
+            //TestBiGraph();
+
+            //Console.WriteLine(maxFlow.isBipartiale(CorrectBiGraph(), 1));
+            Console.WriteLine(maxFlow.Calculate(MatrixFromExample(), 0, 6));
+          //  Console.WriteLine(maxFlow.Calculate(NoPathMatrix(), 0, 4));
             Console.ReadKey();
+        }
+
+
+        private static void TestBiGraph()
+        {
+            var maxFlow = new MaxFlowNetwork();
+            BigraphResult foo =  maxFlow.isBipartiale(CorrectBiGraph(), 1);
+            if (foo.IsBigraph)
+            {
+                maxFlow.CalculateBigraphAssociation(CorrectBiGraph(), 1, foo);
+            }
         }
 
         private static AdjacencyMatrix SimpleMatrix()
@@ -43,6 +56,31 @@ namespace MaxFlowNetwork
             matrix.AddEdge(5, 4, 3f);
             matrix.AddEdge(5, 6, 6f);
             matrix.AddEdge(6, 7, 8f);
+
+            return matrix;
+        }
+
+        private static AdjacencyMatrix CorrectBiGraph()
+        {
+            var matrix = new AdjacencyMatrix(12);
+            matrix.AddEdge(2, 7, 1f);
+            matrix.AddEdge(2, 9, 1f);
+            matrix.AddEdge(2, 11, 1f);
+
+            matrix.AddEdge(3, 8, 1f);
+            matrix.AddEdge(3, 10, 1f);
+
+            matrix.AddEdge(4, 7, 1f);
+            matrix.AddEdge(4, 8, 1f);
+            matrix.AddEdge(4, 9, 1f);
+            matrix.AddEdge(4, 10, 1f);
+            matrix.AddEdge(4, 11, 1f);
+
+            matrix.AddEdge(5, 9, 1f);
+            matrix.AddEdge(5, 10, 1f);
+
+            matrix.AddEdge(6, 8, 1f);
+            matrix.AddEdge(6, 10, 1f);
 
             return matrix;
         }

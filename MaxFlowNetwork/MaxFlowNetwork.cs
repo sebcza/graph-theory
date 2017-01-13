@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MaxFlowNetwork
 {
+
+    public class BigraphResult
+    {
+        public bool IsBigraph { get; set; }
+
+        public int[] Colors { get; set; }
+    }
+
     public class MaxFlowNetwork
     {
         public float? Calculate(AdjacencyMatrix graph, int s, int t)
@@ -83,6 +88,56 @@ namespace MaxFlowNetwork
                     tt = x;
                 }
             }
+        }
+
+        public BigraphResult isBipartiale(AdjacencyMatrix graph, int s)
+        {
+            var colorArr = new int[graph.Order];
+
+            for (int i = 0; i < colorArr.Length; i++)
+            {
+                colorArr[i] = -1;
+            }
+            colorArr[s] = 1;
+
+            var q = new Queue<int>();
+            q.Enqueue(s);
+
+            while (q.Count != 0)
+            {
+                int u = q.Dequeue();
+
+                for (int v = 0; v < colorArr.Length; ++v)
+                {
+                    if (graph.IsEdgeByLabels(u + 1, v + 1) && colorArr[v] == -1)
+                    {
+                        colorArr[v] = 1 - colorArr[u];
+                        q.Enqueue(v);
+                    }
+                    else if(graph.IsEdgeByLabels(u + 1, v + 1) && colorArr[v] == colorArr[u])
+                    {
+                        return new BigraphResult() {Colors = null, IsBigraph = false };
+                    }
+                }
+            }
+
+            return new BigraphResult() { Colors = colorArr, IsBigraph = true };
+        }
+
+        public void CalculateBigraphAssociation(AdjacencyMatrix graph, int s, BigraphResult br)
+        {
+            for (int i = s; i < br.Colors.Length-2; i++)
+            {
+                if (br.Colors[i] == 1)
+                {
+                    graph.AddEdge(1, i+1, 1);
+                }
+                else
+                {
+                    graph.AddEdge(i+1, graph.Order, 1);
+                }
+            }
+            Console.WriteLine(Calculate(graph, 0, br.Colors.Length-1));
         }
     }
 }
