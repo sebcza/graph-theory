@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MaxFlowNetwork
 {
@@ -11,9 +12,16 @@ namespace MaxFlowNetwork
         public int[] Colors { get; set; }
     }
 
+    public class ResultMatrix
+    {
+        public float Fmax { get; set; }
+
+        public AdjacencyMatrix Matrix { get; set; }
+    }
+
     public class MaxFlowNetwork
     {
-        public float? Calculate(AdjacencyMatrix graph, int s, int t)
+        public ResultMatrix Calculate(AdjacencyMatrix graph, int s, int t)
         {
             float fMax = 0;
             var fMatrix = new AdjacencyMatrix(graph.Order);
@@ -63,7 +71,7 @@ namespace MaxFlowNetwork
                 }
                 if (!breakWhile)
                 {
-                    return fMax;
+                    return new ResultMatrix() {Fmax = fMax, Matrix = fMatrix};
                 }
 
                 fMax += cfp[t];
@@ -87,14 +95,16 @@ namespace MaxFlowNetwork
 
                     tt = x;
                 }
+                Console.WriteLine("Kolejny obieg");
             }
+
         }
 
         public BigraphResult isBipartiale(AdjacencyMatrix graph, int s)
         {
             var colorArr = new int[graph.Order];
 
-            for (int i = 0; i < colorArr.Length; i++)
+            for (int i = 0; i < graph.Order; i++)
             {
                 colorArr[i] = -1;
             }
@@ -107,18 +117,22 @@ namespace MaxFlowNetwork
             {
                 int u = q.Dequeue();
 
-                for (int v = 0; v < colorArr.Length; ++v)
+                for (int v = 0; v < graph.Order; ++v)
                 {
-                    if (graph.IsEdgeByLabels(u + 1, v + 1) && colorArr[v] == -1)
+                    if (graph.IsEdge(u, v) && colorArr[v] == -1)
                     {
                         colorArr[v] = 1 - colorArr[u];
                         q.Enqueue(v);
                     }
-                    else if(graph.IsEdgeByLabels(u + 1, v + 1) && colorArr[v] == colorArr[u])
+                    else if(graph.IsEdge(u, v) && colorArr[v] == colorArr[u])
                     {
                         return new BigraphResult() {Colors = null, IsBigraph = false };
                     }
                 }
+            }
+            for (int i = 0; i < colorArr.Length; i++)
+            {
+                Console.WriteLine(i + ": " + colorArr[i]);
             }
 
             return new BigraphResult() { Colors = colorArr, IsBigraph = true };
@@ -126,18 +140,39 @@ namespace MaxFlowNetwork
 
         public void CalculateBigraphAssociation(AdjacencyMatrix graph, int s, BigraphResult br)
         {
-            for (int i = s; i < br.Colors.Length-2; i++)
+            var biggerGraph = new AdjacencyMatrix(graph.Order+2);
+            var q = new List<int>();
+            var blue = new List<int>();
+            var red = new List<int>();
+
+            for (int i = s; i < br.Colors.Length; i++)
             {
-                if (br.Colors[i] == 1)
+                if (br.Colors[i] == 0)
                 {
-                    graph.AddEdge(1, i+1, 1);
+                    biggerGraph.AddEdge(1, i + 2, 1f);
+                    q.Add(i+2);
+                    blue.Add(i+1);
                 }
                 else
                 {
-                    graph.AddEdge(i+1, graph.Order, 1);
+                    biggerGraph.AddEdge(i + 2, biggerGraph.Order, 1f);
+                    red.Add(i+1);
                 }
+            } //Połączenie source z niebieskimi i czerownych z target
+
+            Console.WriteLine(red + " " + blue);
+
+            foreach (var VARIABLE in blue)
+            {
+                var neigh = graph.Neighbours((VARIABLE));
+                neigh.ForEach(n => biggerGraph.AddEdge(VARIABLE+1, n+1, 1f));
             }
-            Console.WriteLine(Calculate(graph, 0, br.Colors.Length-1));
+
+
+
+            var res = Calculate(biggerGraph, 0, biggerGraph.Order - 1);
+            var rs = res.Matrix.Edges.Where(x => blue.Any(z=>z == x.VertexA) && x.Weight==1);
+
         }
     }
 }
